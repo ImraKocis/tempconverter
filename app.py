@@ -8,13 +8,13 @@ from os import environ
 
 app = Flask(__name__)
 # Configure secret key for flask - used for session sharing
-app.config['SECRET_KEY'] = 'your-secret-key'
+app.config['SECRET_KEY'] = environ.get('SECRET_KEY', "secret")
 
 # Configure database details, these need to be changed depending on how you configured mysql container
-db_user = environ.get('DB_USER', 'CHANGEME')
-db_pass = environ.get('DB_PASS', 'CHANGEME')
-db_host = environ.get('DB_HOST', 'CHANGEME')
-db_name = environ.get('DB_NAME', 'CHANGEME')
+db_user = environ.get('DB_USER', 'tempuser')
+db_pass = environ.get('DB_PASS', 'temppassword')
+db_host = environ.get('DB_HOST', '127.0.0.1')
+db_name = environ.get('DB_NAME', 'tempconverterdb')
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://'+db_user+':'+db_pass+'@'+db_host+'/'+db_name
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -24,6 +24,7 @@ college = environ.get('COLLEGE', 'Default College')
 
 db = SQLAlchemy(app)
 
+
 class Temperature(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     celsius = db.Column(db.Float, nullable=False)
@@ -32,12 +33,15 @@ class Temperature(db.Model):
     ip_address = db.Column(db.String(20), nullable=False)
     user_agent = db.Column(db.String(200), nullable=False)
 
+
 with app.app_context():
     db.create_all()
+
 
 class TemperatureForm(FlaskForm):
     celsius = StringField('Celsius', validators=[InputRequired()])
     submit = SubmitField('Convert')
+
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -52,6 +56,7 @@ def index():
     # log_entries = [(t.fahrenheit, t.ip_address, t.user_agent.split()[0], t.date.strftime('%m/%d/%Y %I:%M:%S %p')) for t in temperatures]
     log_entries = [(t.date.strftime('%m/%d/%Y %I:%M:%S %p'), t.celsius, t.fahrenheit, t.ip_address, t.user_agent.split()[0], ) for t in temperatures]
     return render_template('index.html', form=form, log_entries=log_entries, student=student, college=college)
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

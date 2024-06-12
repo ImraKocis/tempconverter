@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: rpassword
+      MYSQL_DATABASE: tcdb
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+
+  app:
+    image: imra24/tempconverter:dev
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      DB_USER: user
+      DB_PASS: password
+      DB_HOST: db
+      DB_NAME: tcdb
+      STUDENT: Imra Kocis
+      COLLEGE: Algebra University
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+
+volumes:
+  db-data:
